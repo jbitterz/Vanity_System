@@ -1,70 +1,76 @@
-# Vanity Ordering System  Full Project Package (Vanity)
+# Vanity Ordering Make-Up System
+
+A greenfield Laravel + Breeze platform where customers browse, order, and track cosmetics from Sephora, MAC, Maybelline, Olay, and L'Oreal. The stack is strictly **PHP / HTML / CSS / Laravel Breeze / MariaDB (SQL)**, optimized for responsive layouts and reliable order tracking.
+
+---
 
 ## 1. System Overview
-Vanity is a web-based ordering platform for cosmetics enthusiasts. Customers register, log in, explore curated products from Sephora, MAC, Maybelline, Olay, and LOréal, build carts, and complete checkout with calculated subtotal, shipping, taxes, and discounts. Inventory is tracked in real time, and each order links to a unique user profile. Admins manage products, stock, and order statuses, while the platform logs critical events for traceability.
+- Users register/login, browse catalog, add products to cart, and checkout with transparent pricing.
+- Orders store subtotal, shipping, tax, final total, and transaction IDs; inventory adjusts atomically.
+- Admins manage products and stock, update order statuses, and audit sales history.
 
-**Primary actors**: Customer, Admin/Staff, Payment Gateway.
+### Actors
+Customer, Admin/Staff, Payment Gateway.
 
-## 2. Functional Requirements (summary)
-1. Email/password registration & login with JWT sessions.
-2. Product catalog with brand filters, search, and pagination.
-3. Cart management: add/update/remove, persistent per user.
-4. Stock validation and decrement on checkout; prevent overselling.
-5. Pricing engine: subtotal + configurable shipping/tax + coupons.
-6. Checkout workflow with transaction id and error handling.
-7. Order history with statuses (pending, paid, shipped, delivered, cancelled).
-8. Admin UI/API for product CRUD, restock, and order status changes.
-9. User-to-order linkage plus audit logging (inventory, checkout).
-10. Optional addresses per user/order for shipping records.
+---
 
-## 3. Non-Functional Requirements
-- Responsive UI (desktop/mobile) built with semantic HTML + Tailwind/Bootstrap.
-- Secure password hashing (bcrypt/argon2) and input validation.
-- REST APIs respond within 200500ms under normal load.
-- Atomic checkout transactions ensure consistency.
-- Automated backups, GDPR/PIPEDA-friendly data minimization.
-- Observability via structured logs + alerting on checkout failures.
+## 2. Key Features
+1. **User Authentication**
+   - Sign-Up and Login pages handled by Laravel Breeze.
+   - Unique user IDs stored in MariaDB; passwords hashed with bcrypt/argon2.
+   - Authenticated users access ordering workflow and purchase history.
+2. **Product Ordering (5 Brands)**
+   - Catalog lists Sephora, MAC, Maybelline, Olay, L'Oreal items.
+   - Each record shows name, brand, unit price, stock flag, and Add-to-Cart action.
+   - Users mix products across brands in one order.
+3. **Inventory Management**
+   - Stock decrements on successful checkout; prevents oversell.
+   - Admin endpoints to restock or adjust quantities with audit logs.
+4. **Price Computation**
+   - Subtotal = sum(item price × quantity).
+   - Total Cost = Subtotal + Shipping Fee + Tax (configurable via `config/pricing.php`).
+   - Coupon/discount hooks included for future use.
+5. **Checkout & Transaction Handling**
+   - Checkout screen shows order summary, calculated totals, and confirmation.
+   - Each purchase generates a transaction ID, persists to DB, and logs critical events.
+6. **Order Database**
+   - Tables cover users, products, inventory logs, orders, and order_items.
+   - Orders store timestamps, totals, and user linkage for analytics.
+7. **User Purchase History**
+   - Logged-in users view past transactions with product lines, amounts, and status (pending/paid/shipped/delivered/cancelled).
 
-## 4. High-Level Architecture
-Frontend SPA or classic HTML views consume Laravel REST APIs. Backend enforces business logic, integrates with payment gateway (Stripe/mocked), and persists to MySQL/MariaDB (SQLite allowed for dev). Queue workers handle async emails/notifications. See `docs/architecture.md` for component diagram narrative.
+---
 
-## 5. Data Model & ERD
-Entities: users  orders  order_items, products referenced by order_items, inventory_logs for stock deltas, optional addresses. ASCII ERD:
-```
-[users] 1---* [orders] 1---* [order_items] *---1 [products]
-```
-Full SQL DDL lives in `sql/schema.sql`.
+## 3. Technology Summary
+- **Backend**: Laravel 11 + Breeze auth, REST controllers.
+- **Frontend**: Blade or lightweight SPA using HTML/CSS and optional Alpine.js.
+- **Database**: MariaDB/MySQL using SQL schema in `sql/schema.sql` (also compatible with SQLite for dev).
+- **Tooling**: Composer, npm/Vite for assets, Pest/PHPUnit for tests.
 
-## 6. UML (Class Skeleton)
-PlantUML text in `uml/vanity_classes.puml` covers `User`, `Product`, `Order`, `OrderItem` relationships. Import into any renderer for diagrams.
+---
 
-## 7. Use Cases & Flows
-Detailed descriptions (UC1UC9) plus checkout flow narrative in `docs/use_cases.md`. Includes primary/alternate flows and validation steps.
+## 4. Documentation & Deliverables
+| Area | File |
+| --- | --- |
+| Architecture | `docs/architecture.md` |
+| Use cases & flows | `docs/use_cases.md` |
+| Checkout sequence | `docs/sequence_checkout.md` |
+| API endpoints | `docs/api_endpoints.md` |
+| SQL schema | `sql/schema.sql` |
+| PlantUML classes | `uml/vanity_classes.puml` |
+| UI mock | `ui/mockup.html` (wireframes pending manual edit) |
+| WinForms reference | `csharp/WinFormsScaffold.cs` |
+| Laravel plan | `laravel/structure.md` |
+| Acceptance tests | `tests/acceptance.md` |
+| Deployment plan | `deployment/plan.md` |
 
-## 8. Sequence Diagram (Checkout)
-`docs/sequence_checkout.md` explains the REST + DB interactions from cart submission through payment confirmation and stock updates, mirroring the transactional steps outlined earlier.
+---
 
-## 9. REST API Surface
-`docs/api_endpoints.md` enumerates endpoints, verbs, auth requirements, request/response payloads, and admin-only routes.
+## 5. Next Steps
+1. Initialize Laravel Breeze project targeting MariaDB.
+2. Implement migrations using `sql/schema.sql` as the baseline.
+3. Wire up controllers/services per `laravel/structure.md`.
+4. Build responsive Blade views mirroring `ui/mockup.html`.
+5. Execute acceptance tests and follow the deployment plan for staging/prod.
 
-## 10. UI Deliverables
-- Textual wireframes and annotations: `ui/wireframes.md`.
-- Single-file HTML mockup demonstrating layout, filters, product cards, and cart summary: `ui/mockup.html`.
-Both are lightweight and can be opened locally.
-
-## 11. C# Windows Forms Scaffold
-`csharp/WinFormsScaffold.cs` defines basic models and suggested forms (Login, Catalog, Cart, Checkout) with control mappings and data-binding notes.
-
-## 12. Laravel Structure
-`laravel/structure.md` outlines migrations (users, products, orders, order_items, inventory_logs), Eloquent models, controllers (Auth, ProductController, CartController, CheckoutController, Admin/OrderController), policies, and routes (api/web). Includes transaction-safe checkout pseudocode.
-
-## 13. Test Cases / Acceptance Criteria
-`tests/acceptance.md` lists priority functional tests for auth, catalog, cart, stock enforcement, checkout, admin workflows, and logging requirements.
-
-## 14. Deployment & Next Steps
-`deployment/plan.md` covers environment setup, secrets management, CI/CD, database migrations, payment integration tasks, monitoring, and backlog items. Follow it after scaffolding the codebase.
-
-## 15. Optional Artifacts
-Ready to provide on request: sample SQL seed data, rendered PlantUML PNGs, full Laravel starter project, Windows Forms project zip, or a higher-fidelity UI prototype.
-
-> This repository now holds every artifact required to kick off Vanity as a greenfield system, isolated from previous projects.
+Need additional artifacts (seed data, rendered UML, Breeze project scaffolding)? Let me know and I'll add them within this folder.
